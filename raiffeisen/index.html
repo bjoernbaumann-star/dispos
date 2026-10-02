@@ -1,0 +1,174 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Raiffeisen x Sportler 26</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column call-sheet strip — shot id | time | content | frame; breaks as tinted bands */
+:root{
+  --bg:#f6f6f3;--paper:#ffffff;--fg:#1b1d1a;--muted:#66695f;--line:#d7d8d0;
+  --band:#e2ecd6;--bandfg:#2f5a1c;--day:#2a2c28;--dayfg:#f6f6f3;--u2:#4f6470;
+  --now:#e10000;--accent:#c4001a;--done:#9a9c93;--chip:#eef0e9;
+  --display:"Archivo",Arial,Helvetica,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141513;--paper:#1c1d1b;--fg:#ecede7;--muted:#a3a69b;--line:#34362f;--band:#253320;--bandfg:#b6d99d;--day:#30322d;--dayfg:#ecede7;--u2:#34464f;--now:#ff3b3b;--accent:#ff4d5e;--done:#6c6f66;--chip:#262823;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141513;--paper:#1c1d1b;--fg:#ecede7;--muted:#a3a69b;--line:#34362f;--band:#253320;--bandfg:#b6d99d;--day:#30322d;--dayfg:#ecede7;--u2:#34464f;--now:#ff3b3b;--accent:#ff4d5e;--done:#6c6f66;--chip:#262823;color-scheme:dark}
+[hidden]{display:none!important}*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.35 var(--display)}
+main{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:20px 80px}
+header.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:18px}
+h1{font-weight:800;font-size:clamp(26px,5.5vw,44px);letter-spacing:-.01em;margin:0;line-height:1;text-wrap:balance}
+.sub{color:var(--muted);font-size:12px;margin-top:6px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:600 13px var(--display);border:1px solid var(--line);background:var(--paper);color:var(--fg);border-radius:6px;padding:8px 12px;cursor:pointer}
+.btn:focus-visible,.chk:focus-visible,.handle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.status{font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:3px}
+.plain,.day{border:1px solid var(--line);text-align:center;padding:7px;font-size:12px}
+.plain{background:var(--paper)}
+.day{background:var(--day);color:var(--dayfg);font-weight:600}.day.u2{background:var(--u2);color:#fff;margin-top:14px}
+.it{position:relative;border:1px solid var(--line);background:var(--paper)}
+.bar{background:var(--band);color:var(--bandfg);text-align:center;padding:9px 40px}
+.bar b{font-family:var(--mono);font-weight:700;font-size:13px}
+.row{display:grid;grid-template-columns:96px 74px minmax(0,1fr) 280px;min-height:150px}
+.row.ton{min-height:0}
+.row>div{padding:7px 9px;border-right:1px solid var(--line);min-width:0}
+.row>.pic{border-right:0;padding:0;background:var(--chip)}
+.sid{font-weight:800;font-size:13px;line-height:1.2}
+.tm{font-family:var(--mono);font-size:12px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.tm span{color:var(--muted);font-size:11px}
+.ds{display:flex;flex-direction:column;gap:1px}
+.ds small{font-size:12px}.ds strong{font-size:14px}
+.pic img,.pic video{width:100%;height:100%;object-fit:cover;display:block}
+.it.done{opacity:.5}
+.it.done .sid,.it.done .ds>small,.it.done .ds>strong,.it.done .ds>span,.it.done .tm,.it.done.bar>b,.it.done.bar>span{text-decoration:line-through;text-decoration-thickness:2px}
+.it.done .pic{filter:grayscale(1)}
+.ctl{position:absolute;right:6px;top:6px;display:flex;gap:6px;z-index:6}
+.edit-off .ctl{display:none}
+.chk,.handle{width:34px;height:34px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--fg);font:700 16px var(--display);cursor:pointer;display:grid;place-items:center;padding:0}
+.handle{cursor:grab;touch-action:none}
+.it.done .chk{background:var(--fg);color:var(--bg);text-decoration:none}
+.ds .ctl{position:static;margin-top:auto;padding-top:8px}
+main:not(.edit-off) .bar{padding-inline:12px 96px}
+.bar .ctl{top:50%;transform:translateY(-50%)}
+.sortable-ghost{opacity:.35}.sortable-chosen{box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.nowline{position:absolute;left:-1px;right:-1px;height:0;border-top:2px solid var(--now);z-index:5;pointer-events:none}
+.nowline span{position:absolute;left:0;top:-10px;background:var(--now);color:#fff;font:700 11px var(--mono);padding:1px 5px;border-radius:2px}
+#jetzt{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--now);color:#fff;border:0;border-radius:20px;padding:10px 16px;font:700 13px var(--display);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:10}
+@media (max-width:680px){
+  .row{grid-template-columns:82px 62px minmax(0,1fr)}
+  .row>div:nth-child(3){border-right:0}
+  .row>.pic{grid-column:1/-1;border-top:1px solid var(--line)}
+  .pic img,.pic video{aspect-ratio:16/9;height:auto}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.pwbox{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.pwbox form{background:var(--paper);color:var(--fg);border-radius:10px;padding:20px;display:flex;flex-wrap:wrap;gap:10px;max-width:360px;width:100%}
+.pwbox label{width:100%;font-weight:700}.pwbox input{flex:1 1 100%;font:16px var(--display);padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.pwbox p{margin:0;color:var(--accent);font-size:13px;width:100%}
+</style>
+</head><body><main id="app" class="edit-off">
+<header class="top">
+  <div><h1>RAIFFEISEN X SPORTLER 26</h1><div class="sub">Drehplan mit Bildern · Mi 30.09.2026 · Stadthalle Bülach</div></div>
+  <div class="tools">
+    <span class="status" id="status">Lädt …</span>
+    <button class="btn" id="editBtn" type="button" hidden>Bearbeiten</button>
+    <button class="btn" id="resetBtn" type="button" hidden>Reihenfolge zurücksetzen</button>
+  </div>
+</header>
+<div class="plain">SHOOT START</div>
+<div class="day" style="margin-top:3px">Day #1: Wed 30/09/2026 · Film Unit</div>
+<div class="list" id="u1"></div>
+<div class="day u2">2nd unit</div>
+<div class="list" id="u2" style="margin-top:3px"></div>
+<div class="plain" style="margin-top:3px">SHOOT END</div>
+</main>
+<button id="jetzt" type="button" hidden>Jetzt</button>
+<div id="pw" hidden class="pwbox"><form id="pwForm"><label for="pwIn">Passwort zum Bearbeiten</label><input id="pwIn" type="password" autocomplete="current-password"><button class="btn" type="submit">Öffnen</button><button class="btn" type="button" onclick="document.getElementById('pw').hidden=true">Abbrechen</button><p id="pwMsg"></p></form></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script>
+const DATA={"items": [{"id": "x01", "u": 1, "k": "bar", "d": 60, "t": "SET-UP"}, {"id": "x02", "u": 1, "k": "bar", "d": 35, "t": "STAND BY"}, {"id": "x03", "u": 1, "k": "bar", "d": 10, "t": "CAMILLE ARRIVES & GETS READY"}, {"id": "x04", "u": 1, "k": "row", "d": 5, "sid": "RED-CAMI 1", "desc": "CU Profile Shot", "cast": "Camille Rast", "set": "Rote Welt", "img": "i0", "vid": "profil", "ton": false}, {"id": "x05", "u": 1, "k": "row", "d": 5, "sid": "RED-CAMI 2", "desc": "Skifahrer ist in der Hocke und fährt auf uns zu.", "cast": "Camille Rast", "set": "Rote Welt", "img": "i1", "vid": "hocke1", "ton": false}, {"id": "x06", "u": 1, "k": "row", "d": 5, "sid": "RED-CAMI 3", "desc": "Close Up auf das Auge.", "cast": "Camille Rast", "set": "Rote Welt", "img": "i2", "vid": "auge", "ton": false}, {"id": "x07", "u": 1, "k": "row", "d": 5, "sid": "RED-CAMI 4", "desc": "Eine Hand streift über einen Ski.", "cast": "Camille Rast", "set": "Rote Welt", "img": "i3", "vid": null, "ton": false}, {"id": "x08", "u": 1, "k": "row", "d": 5, "sid": "RED-CAMI 5", "desc": "Hände schnallen Skischuhe zu.", "cast": "Camille Rast", "set": "Rote Welt", "img": "i4", "vid": null, "ton": false}, {"id": "x09", "u": 1, "k": "row", "d": 10, "sid": "1 FOTO RED-CAMI 7", "desc": "PORTRAIT FRONTAL", "cast": "Camille Rast", "set": "Rote Welt", "img": "i5", "vid": null, "ton": false}, {"id": "x10", "u": 1, "k": "row", "d": 10, "sid": "2 FOTO RED-CAMI", "desc": "PORTRAIT PROFIL", "cast": "Camille Rast", "set": "Rote Welt", "img": "i6", "vid": null, "ton": false}, {"id": "x11", "u": 1, "k": "row", "d": 5, "sid": "TON RED-CAMI 6", "desc": "TONAUFNAHMEN", "cast": "Camille Rast", "set": "BÜRO", "img": null, "vid": null, "ton": true}, {"id": "x12", "u": 1, "k": "bar", "d": 0, "t": "HARD OUT CAMILLE"}, {"id": "x13", "u": 1, "k": "bar", "d": 15, "t": "LOC. MOVE / MARCO ARRIVES & GETS READY"}, {"id": "x14", "u": 1, "k": "row", "d": 15, "sid": "MEHR-MARCO 1", "desc": "LICHT & SCHATTENSPIEL", "cast": "Marco Odermatt", "set": "Mehrwert-Sujets", "img": "i7", "vid": "mm", "ton": false}, {"id": "x15", "u": 1, "k": "row", "d": 10, "sid": "1 FOTO MEHR-MARCO", "desc": "PORTRAIT MEDIUM CLOSE", "cast": "Marco Odermatt", "set": "Mehrwert-Sujets", "img": "i8", "vid": null, "ton": false}, {"id": "x16", "u": 1, "k": "row", "d": 0, "sid": "2 FOTO MEHR-MARCO", "desc": "PORTRAIT CLOSE", "cast": "Marco Odermatt", "set": "Mehrwert-Sujets", "img": "i9", "vid": null, "ton": false}, {"id": "x17", "u": 1, "k": "bar", "d": 5, "t": "SET UP STORY"}, {"id": "x18", "u": 1, "k": "row", "d": 10, "sid": "STORY-MARCO 1", "desc": "mit Fernbedienung TV anschalten", "cast": "Marco Odermatt", "set": "Storytelling-Spots", "img": "i10", "vid": "sm1", "ton": false}, {"id": "x19", "u": 1, "k": "row", "d": 0, "sid": "STORY-MARCO 2", "desc": "Blick in die Kamera", "cast": "Marco Odermatt", "set": "Storytelling-Spots", "img": "i11", "vid": "sm2", "ton": false}, {"id": "x20", "u": 1, "k": "row", "d": 5, "sid": "TON STORY-MARCO 3", "desc": "TONAUFNAHMEN", "cast": "Marco Odermatt", "set": "BÜRO", "img": null, "vid": null, "ton": true}, {"id": "x21", "u": 1, "k": "bar", "d": 0, "t": "HARD OUT MARCO"}, {"id": "x22", "u": 1, "k": "bar", "d": 5, "t": "GO TO LUNCH"}, {"id": "x23", "u": 1, "k": "bar", "d": 50, "t": "LUNCH"}, {"id": "x24", "u": 1, "k": "bar", "d": 30, "t": "GET READY AGAIN"}, {"id": "x25", "u": 1, "k": "bar", "d": 10, "t": "ANDRI ARRIVES & GETS READY"}, {"id": "x26", "u": 1, "k": "row", "d": 10, "sid": "MEHR-ANDRI 1", "desc": "LICHT & SCHATTENSPIEL", "cast": "Andri Ragettli", "set": "Mehrwert-Sujets", "img": "i12", "vid": "ma", "ton": false}, {"id": "x27", "u": 1, "k": "row", "d": 5, "sid": "1 FOTO MEHR-ANDRI", "desc": "PORTRAIT MEDIUM CLOSE", "cast": "Andri Ragettli", "set": "Mehrwert-Sujets", "img": "i8", "vid": null, "ton": false}, {"id": "x28", "u": 1, "k": "row", "d": 5, "sid": "2 FOTO MEHR-ANDRI", "desc": "PORTRAIT CLOSE", "cast": "Andri Ragettli", "set": "Mehrwert-Sujets", "img": "i9", "vid": null, "ton": false}, {"id": "x29", "u": 1, "k": "bar", "d": 0, "t": "FOTO ANDRI"}, {"id": "x30", "u": 1, "k": "bar", "d": 10, "t": "LOIC ARRIVES & GETS READY"}, {"id": "x31", "u": 1, "k": "row", "d": 10, "sid": "MEHR-LOIC 1", "desc": "LICHT & SCHATTENSPIEL", "cast": "Loic Meillard", "set": "Mehrwert-Sujets", "img": "i13", "vid": "ml", "ton": false}, {"id": "x32", "u": 1, "k": "row", "d": 5, "sid": "1 FOTO MEHR-LOIC", "desc": "PORTRAIT MEDIUM CLOSE", "cast": "Loic Meillard", "set": "Mehrwert-Sujets", "img": "i8", "vid": null, "ton": false}, {"id": "x33", "u": 1, "k": "row", "d": 5, "sid": "2 FOTO MEHR-LOIC", "desc": "PORTRAIT CLOSE", "cast": "Loic Meillard", "set": "Mehrwert-Sujets", "img": "i9", "vid": null, "ton": false}, {"id": "x34", "u": 1, "k": "bar", "d": 0, "t": "HARD OUT ANDRI"}, {"id": "x35", "u": 1, "k": "bar", "d": 5, "t": "SET UP STORY"}, {"id": "x36", "u": 1, "k": "row", "d": 5, "sid": "STORY-LOIC 1", "desc": "mit Fernbedienung TV anschalten", "cast": "Loic Meillard", "set": "Storytelling-Spots", "img": "i14", "vid": "sl1", "ton": false}, {"id": "x37", "u": 1, "k": "row", "d": 5, "sid": "STORY-LOIC 2", "desc": "Blick in die Kamera", "cast": "Loic Meillard", "set": "Storytelling-Spots", "img": "i15", "vid": "sl2", "ton": false}, {"id": "x38", "u": 1, "k": "row", "d": 5, "sid": "TON STORY-LOIC 3", "desc": "TONAUFNAHMEN", "cast": "Loic Meillard", "set": "Storytelling-Spots", "img": null, "vid": null, "ton": true}, {"id": "x39", "u": 1, "k": "bar", "d": 5, "t": "LOC. MOVE & KOSTÜMWECHSEL"}, {"id": "x40", "u": 1, "k": "row", "d": 5, "sid": "RED-LOIC 5", "desc": "CU Profile Shot", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i0", "vid": "profil", "ton": false}, {"id": "x41", "u": 1, "k": "row", "d": 5, "sid": "RED-LOIC 1", "desc": "Skifahrer ist in der Hocke und fährt auf uns zu.", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i16", "vid": "hocke2", "ton": false}, {"id": "x42", "u": 1, "k": "row", "d": 5, "sid": "RED-LOIC 4", "desc": "Close Up auf das Auge.", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i2", "vid": "auge", "ton": false}, {"id": "x43", "u": 1, "k": "row", "d": 5, "sid": "RED-LOIC 2", "desc": "Eine Hand streift über einen Ski.", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i3", "vid": null, "ton": false}, {"id": "x44", "u": 1, "k": "row", "d": 5, "sid": "RED-LOIC 3", "desc": "Hände schnallen Skischuhe zu.", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i4", "vid": null, "ton": false}, {"id": "x45", "u": 1, "k": "row", "d": 5, "sid": "1 FOTO RED-LOIC", "desc": "PORTRAIT MEDIUM CLOSE", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i5", "vid": null, "ton": false}, {"id": "x46", "u": 1, "k": "row", "d": 5, "sid": "2 FOTO RED-LOIC", "desc": "PORTRAIT CLOSE", "cast": "Loic Meillard", "set": "Rote Welt", "img": "i6", "vid": null, "ton": false}, {"id": "x47", "u": 1, "k": "row", "d": 5, "sid": "TON RED-LOIC 6", "desc": "TONAUFNAHMEN", "cast": "Loic Meillard", "set": "BÜRO", "img": null, "vid": null, "ton": true}, {"id": "x48", "u": 1, "k": "bar", "d": 10, "t": "LOC. MOVE / PIRMIN GETS READY"}, {"id": "x49", "u": 1, "k": "row", "d": 10, "sid": "MEHR-PIRMIN 1", "desc": "CU Pirmin dreht sich ins Licht", "cast": "Pirmin Zurbriggen", "set": "Mehrwert-Sujets", "img": "i17", "vid": "mp", "ton": false}, {"id": "x50", "u": 1, "k": "row", "d": 5, "sid": "MEHR-PIRMIN 2", "desc": "MCU Pirmin dreht sich ins Licht", "cast": "Pirmin Zurbriggen", "set": "Mehrwert-Sujets", "img": "i18", "vid": "mp", "ton": false}, {"id": "x51", "u": 1, "k": "row", "d": 5, "sid": "FOTO MEHR-PIRMIN 4", "desc": "MCU Pirmin dreht sich ins Licht", "cast": "Pirmin Zurbriggen", "set": "Storytelling-Spots", "img": "i8", "vid": null, "ton": false}, {"id": "x52", "u": 1, "k": "bar", "d": 5, "t": "SET UP STORY"}, {"id": "x53", "u": 1, "k": "row", "d": 10, "sid": "STORY-PIRMIN 1", "desc": "mit Fernbedienung TV anschalten", "cast": "Pirmin Zurbriggen", "set": "Storytelling-Spots", "img": "i19", "vid": "sp1", "ton": false}, {"id": "x54", "u": 1, "k": "row", "d": 5, "sid": "STORY-PIRMIN 2", "desc": "Blick in die Kamera", "cast": "Pirmin Zurbriggen", "set": "Storytelling-Spots", "img": "i20", "vid": "sp2", "ton": false}, {"id": "x55", "u": 1, "k": "row", "d": 5, "sid": "TON STORY-PIRMIN 3", "desc": "TONAUFNAHMEN", "cast": "Pirmin Zurbriggen", "set": "BÜRO", "img": null, "vid": null, "ton": true}, {"id": "x56", "u": 1, "k": "row", "d": 20, "sid": "SOME6", "desc": "", "cast": "Pirmin Zurbriggen", "set": "Storytelling-Spots", "img": null, "vid": null, "ton": false}, {"id": "x57", "u": 1, "k": "bar", "d": 0, "t": "HARD OUT PIRMIN"}, {"id": "x58", "u": 2, "k": "bar", "d": 105, "t": "SET-UP"}, {"id": "x59", "u": 2, "k": "row", "d": 60, "sid": "SOME2", "desc": "", "cast": "Franjo von Allmen", "set": "SOCIAL MEDIA", "img": null, "vid": null, "ton": false}, {"id": "x60", "u": 2, "k": "bar", "d": 5, "t": "CAST WECHSEL MATHILDE"}, {"id": "x61", "u": 2, "k": "row", "d": 60, "sid": "SOME1", "desc": "", "cast": "Mathilde Gremaud", "set": "SOCIAL MEDIA", "img": null, "vid": null, "ton": false}, {"id": "x62", "u": 2, "k": "bar", "d": 0, "t": "HARD OUT MATHILDE & MARCO"}, {"id": "x63", "u": 2, "k": "bar", "d": 5, "t": "GO TO LUNCH"}, {"id": "x64", "u": 2, "k": "bar", "d": 60, "t": "LUNCH"}, {"id": "x65", "u": 2, "k": "bar", "d": 70, "t": "GET READY AGAIN"}, {"id": "x66", "u": 2, "k": "bar", "d": 0, "t": "PIRMIN ARRIVES & GETS READY"}, {"id": "x67", "u": 2, "k": "row", "d": 50, "sid": "SOME5", "desc": "", "cast": "Pirmin Zurbriggen", "set": "SOCIAL MEDIA", "img": null, "vid": null, "ton": false}, {"id": "x68", "u": 2, "k": "bar", "d": 0, "t": "LOIC GOES TO FILM UNIT"}], "img": {"i0": "media/i0.jpg", "i1": "media/i1.jpg", "i2": "media/i2.jpg", "i3": "media/i3.jpg", "i4": "media/i4.jpg", "i5": "media/i5.jpg", "i6": "media/i6.jpg", "i7": "media/i7.jpg", "i8": "media/i8.jpg", "i9": "media/i9.jpg", "i10": "media/i10.jpg", "i11": "media/i11.jpg", "i12": "media/i12.jpg", "i13": "media/i13.jpg", "i14": "media/i14.jpg", "i15": "media/i15.jpg", "i16": "media/i16.jpg", "i17": "media/i17.jpg", "i18": "media/i18.jpg", "i19": "media/i19.jpg", "i20": "media/i20.jpg"}, "vid": {"profil": "media/profil.mp4", "hocke1": "media/hocke1.mp4", "auge": "media/auge.mp4", "mm": "media/mm.mp4", "sm1": "media/sm1.mp4", "sm2": "media/sm2.mp4", "ma": "media/ma.mp4", "ml": "media/ml.mp4", "sl1": "media/sl1.mp4", "sl2": "media/sl2.mp4", "hocke2": "media/hocke2.mp4", "mp": "media/mp.mp4", "sp1": "media/sp1.mp4", "sp2": "media/sp2.mp4"}};
+const DAY="2026-09-30",START={1:480,2:480},SPEED=2;
+const byId=Object.fromEntries(DATA.items.map(i=>[i.id,i]));
+const DEFAULT={1:DATA.items.filter(i=>i.u===1).map(i=>i.id),2:DATA.items.filter(i=>i.u===2).map(i=>i.id)};
+let state={order:{1:[...DEFAULT[1]],2:[...DEFAULT[2]]},done:{}};
+let editing=false,canWrite=false,dragging=false,editKey="";const API="/api/state?plan=raiffeisen",KEYNAME="ohmyshed-edit-raiffeisen";
+const $=s=>document.querySelector(s);
+const hm=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function normalize(o,u){const known=new Set(DEFAULT[u]);const seen=new Set();const out=[];(Array.isArray(o)?o:[]).forEach(id=>{if(known.has(id)&&!seen.has(id)){seen.add(id);out.push(id)}});DEFAULT[u].forEach(id=>{if(!seen.has(id))out.push(id)});return out}
+const nodes={};
+function build(it){
+  const el=document.createElement("div");el.dataset.id=it.id;
+  const ctl='<div class="ctl"><button class="handle" type="button" aria-label="Verschieben">↕</button><button class="chk" type="button" aria-label="Abhaken">✓</button></div>';
+  if(it.k==="bar"){el.className="it bar";el.innerHTML='<b class="t"></b> / <span>'+esc(it.t)+'</span>'+ctl}
+  else{
+    el.className="it row"+(it.ton?" ton":"");
+    let pic="";
+    if(it.vid)pic='<video src="'+DATA.vid[it.vid]+'" poster="'+(it.img?DATA.img[it.img]:"")+'" autoplay muted loop playsinline aria-label="'+esc(it.sid)+'"></video>';
+    else if(it.img)pic='<img src="'+DATA.img[it.img]+'" alt="'+esc(it.sid)+'">';
+    el.innerHTML='<div class="sid">'+esc(it.sid)+'</div><div class="tm"></div><div class="ds">'+(it.desc?"<small>"+esc(it.desc)+"</small>":"")+"<strong>"+esc(it.cast)+"</strong><span>"+esc(it.set)+'</span>'+ctl+'</div><div class="pic">'+pic+"</div>";
+    const v=el.querySelector("video");if(v){const s=()=>{v.playbackRate=SPEED};v.addEventListener("loadedmetadata",s);v.addEventListener("play",s);s()}
+  }
+  el.querySelector(".chk").addEventListener("click",()=>toggleDone(it.id));
+  return el;
+}
+DATA.items.forEach(it=>nodes[it.id]=build(it));
+let times={};
+function render(){
+  times={};
+  [1,2].forEach(u=>{
+    const list=$("#u"+u);let t=START[u];
+    state.order[u].forEach(id=>{
+      const it=byId[id],el=nodes[id];if(el.parentNode!==list||list.lastElementChild!==el)list.appendChild(el);
+      const s=t,e=t+it.d;times[id]={s,e,u};t=e;
+      el.classList.toggle("done",!!state.done[id]);
+      if(it.k==="bar")el.querySelector(".t").textContent=it.d?hm(s)+" - "+hm(e)+" / "+(it.d>=60?Math.floor(it.d/60)+"h"+(it.d%60?String(it.d%60)+"m":""):"0h"+it.d+"m"):hm(s);
+      else el.querySelector(".tm").innerHTML="<b>"+hm(s)+"</b>"+(it.d?"<span>"+(it.d>=60?Math.floor(it.d/60)+"h"+(it.d%60||""):"0h"+it.d+"m")+"</span><b>"+hm(e)+"</b>":"");
+    });
+  });
+  updNow();
+}
+function updNow(){
+  document.querySelectorAll(".nowline").forEach(n=>n.remove());
+  const d=new Date(),ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const btn=$("#jetzt");btn.hidden=true;if(ds!==DAY)return;
+  const now=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;let first=null;
+  [1,2].forEach(u=>{const id=state.order[u].find(id=>{const x=times[id];return x.e>x.s&&now>=x.s&&now<x.e});if(!id)return;const x=times[id];
+    const n=document.createElement("div");n.className="nowline";n.style.top=((now-x.s)/(x.e-x.s)*100)+"%";n.innerHTML="<span>"+hm(Math.floor(now))+"</span>";nodes[id].appendChild(n);if(!first)first=n});
+  if(first){btn.hidden=false;btn.onclick=()=>first.scrollIntoView({behavior:"smooth",block:"center"})}
+}
+setInterval(updNow,30000);
+function setStatus(t){$("#status").textContent=t}
+async function save(){
+  if(!canWrite)return;
+  const payload={order:{u1:state.order[1],u2:state.order[2]},done:state.done};
+  try{const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json","x-edit-key":editKey},body:JSON.stringify(payload)});
+    if(r.status===401){canWrite=false;try{localStorage.removeItem(KEYNAME)}catch(e){};setEditing(false);setStatus("Passwort falsch");return}
+    if(!r.ok)throw 0;const j=await r.json();lastRev=j.rev;setStatus("Gespeichert")}catch(e){setStatus("Speichern fehlgeschlagen")}
+}
+function toggleDone(id){if(!editing)return;if(state.done[id])delete state.done[id];else state.done[id]=true;render();save()}
+const sortables=typeof Sortable==="undefined"?[]:[1,2].map(u=>Sortable.create($("#u"+u),{handle:".handle",animation:150,disabled:true,
+  onStart(){dragging=true},
+  onEnd(){dragging=false;state.order[u]=[...$("#u"+u).children].map(c=>c.dataset.id);render();save()}}));
+function setEditing(on){editing=on;$("#app").classList.toggle("edit-off",!on);$("#editBtn").classList.toggle("on",on);$("#editBtn").textContent=on?"Fertig":"Bearbeiten";$("#resetBtn").hidden=!on;sortables.forEach(s=>s.option("disabled",!on))}
+$("#editBtn").addEventListener("click",()=>setEditing(!editing));
+let resetArmed=false;
+$("#resetBtn").addEventListener("click",()=>{
+  if(!resetArmed){resetArmed=true;$("#resetBtn").textContent="Wirklich zurücksetzen?";setTimeout(()=>{resetArmed=false;$("#resetBtn").textContent="Reihenfolge zurücksetzen"},4000);return}
+  resetArmed=false;$("#resetBtn").textContent="Reihenfolge zurücksetzen";state.order={1:[...DEFAULT[1]],2:[...DEFAULT[2]]};state.done={};render();save()});
+render();
+let lastRev=-1;
+function apply(d){if(dragging||!d||d.rev===lastRev)return;lastRev=d.rev;state.order={1:normalize(d.order&&d.order.u1,1),2:normalize(d.order&&d.order.u2,2)};state.done=Object.assign({},d.done||{});render()}
+async function poll(){try{const r=await fetch(API,{cache:"no-store"});if(r.ok){apply(await r.json());if(!editing)setStatus("Live")}}catch(e){setStatus("Offline – zeigt letzten Stand")}}
+poll();setInterval(poll,8000);
+$("#editBtn").hidden=false;
+$("#editBtn").addEventListener("click",async e=>{
+  if(canWrite)return;e.stopImmediatePropagation();
+  const box=$("#pw");box.hidden=false;$("#pwIn").focus();
+},true);
+$("#pwForm").addEventListener("submit",async e=>{e.preventDefault();const k=$("#pwIn").value.trim();if(!k)return;
+  const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json","x-edit-key":k},body:JSON.stringify({check:true})});
+  if(r.ok){editKey=k;canWrite=true;try{localStorage.setItem(KEYNAME,k)}catch(e){};$("#pw").hidden=true;setEditing(true);setStatus("Bearbeiten")}
+  else{$("#pwMsg").textContent="Passwort stimmt nicht."}});
+try{const k=localStorage.getItem(KEYNAME);if(k){editKey=k;canWrite=true}}catch(e){}
+</script>
+</body></html>

@@ -1,0 +1,7 @@
+name = "ohmyshed"
+pages_build_output_dir = "."
+compatibility_date = "2026-09-01"
+
+[[kv_namespaces]]
+binding = "PLANS"
+id = "ff0c23e1fedd4e67945ae6d277962aa2"
